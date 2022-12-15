@@ -95,7 +95,7 @@ class Lagrange():
                 raise Exception
             except:
                 print("\nWe do not recommend interpolation with order>20, if you still want to try it,")
-                print("please, set the order manually and try again. Else try the Spline2() function\n")
+                print("please, set the order manually and try again. Else try the Spline() function\n")
         else:
             f = lambda x: np.dot( self.__y[:self.__order+1], self.Prod_dx(x)/self.__div )
         
@@ -193,8 +193,8 @@ class Stirling():
                  data_y: np.ndarray):
         self.__x = data_x
         self.__y = data_y
-        self.__dfs_center = self.DivDiff()
         self.n = len(data_x)
+        self.__dfs_center = self.DivDiff()
         self.h = data_x[1]-data_x[0]
 
 
@@ -259,53 +259,24 @@ class Stirling():
 #=======================================================================================
 
 
-def LinSpline(x_data,y_data,step=0.01) -> tuple:
+def Spline(x_data,y_data,order,step=0.01) -> tuple:
     
     N = len(x_data)
     x = np.array([])
     y = np.array([])
-    for i in range(N-1):
-        f = Lagrange(x_data[i:i+2],y_data[i:i+2])
     
-        if i<N-2:
-            x_chunk = np.arange(x_data[i],x_data[i+1]+step,step)
-            y_chunk = f.at(x_chunk)
-
-            x = np.concatenate([x,x_chunk],axis=None)
-            y = np.concatenate([y,y_chunk],axis=None)
+    for i in range(N-order):
+        
+        f = Lagrange(x_data[i:i+order+1],y_data[i:i+order+1])
+        
+        if i==0:
+            x_chunk = np.arange(x_data[i],x_data[i+order]+step,step)
+        elif i<N-3:
+            x_chunk = np.arange(x[-1]+step,x_data[i+order]+step,step)
         else:
-            x_chunk = np.arange(x_data[i],x_data[i+1]+step,step)
-            y_chunk = f.at(x_chunk)
-
-            x = np.concatenate([x,x_chunk],axis=None)
-            y = np.concatenate([y,y_chunk],axis=None)
+            x_chunk = np.arange(x[-1]+step,x_data[i+order]+step,step)
+            
+        y_chunk = f.at(x_chunk)
+        x = np.concatenate([x,x_chunk],axis=None)
+        y = np.concatenate([y,y_chunk],axis=None)
     return (x,y)
-
-
-#=======================================================================================
-#=======================================================================================
-
-
-def Spline2(x_data,y_data,step=0.01) -> tuple:
-    
-    N = len(x_data)
-    x = np.array([])
-    y = np.array([])
-    for i in range(N-2):
-        f = Lagrange(x_data[i:i+3],y_data[i:i+3])
-    
-        if i<N-3:
-            x_chunk = np.arange(x_data[i],x_data[i+2]+step,step)
-            y_chunk = f.at(x_chunk[x_chunk<=x_data[i+1]])
-
-            x = np.concatenate([x,x_chunk[x_chunk<=x_data[i+1]]],axis=None)
-            y = np.concatenate([y,y_chunk],axis=None)
-        else:
-            x_chunk = np.arange(x_data[i],x_data[i+2]+step,step)
-            y_chunk = f.at(x_chunk)
-
-            x = np.concatenate([x,x_chunk],axis=None)
-            y = np.concatenate([y,y_chunk],axis=None)
-    return (x,y)
-
-
